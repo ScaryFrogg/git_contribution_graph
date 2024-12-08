@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"github.com/shurcooL/graphql"
 	"golang.org/x/oauth2"
@@ -41,10 +42,11 @@ func drawGrid(activityLevels [][]int) {
 }
 
 func main() {
+	token := flag.String("token", "", "GitHub token")
+	username := flag.String("username", "", "GitHub username")
+	flag.Parse()
 
-	token := ""
-	username := "ScaryFrogg"
-	contributionMap := fetchContributions(username, token)
+	contributionMap := fetchContributions(*username, *token)
 	println(len(contributionMap))
 	println(len(contributionMap[0]))
 
