@@ -1,7 +1,11 @@
 package main
 
 import (
+	"context"
 	"fmt"
+	"github.com/shurcooL/graphql"
+	"golang.org/x/oauth2"
+	"log"
 )
 
 const (
@@ -15,25 +19,89 @@ const (
 
 var colorMap = []string{white, c1, c2, c3, c4}
 
-func drawGrid(width, height int, activityLevels [][]int) {
-	for y := 0; y < height; y++ {
-		for x := 0; x < width; x++ {
-			fmt.Print(colorMap[activityLevels[y][x]] + "  " + resetColor)
+func drawGrid(activityLevels [][]int) {
+	for y := 0; y < len(activityLevels); y++ {
+		for x := 0; x < len(activityLevels[y]); x++ {
+			var colorIndex int
+			cCount := activityLevels[y][x]
+			switch {
+			case cCount == 0:
+				colorIndex = 0
+			case cCount < 3:
+				colorIndex = 1
+			case cCount < 5:
+				colorIndex = 2
+			default:
+				colorIndex = 3
+			}
+			fmt.Print(colorMap[colorIndex] + "  " + resetColor)
 		}
 		fmt.Println()
 	}
 }
 
 func main() {
-	width := 52
-	height := 7
-	activityLevels := make([][]int, height)
-	for i := range activityLevels {
-		activityLevels[i] = make([]int, width)
-		for j := range activityLevels[i] {
-			activityLevels[i][j] = (i + j) % len(colorMap)
-		}
+
+	token := ""
+	username := "ScaryFrogg"
+	contributionMap := fetchContributions(username, token)
+	println(len(contributionMap))
+	println(len(contributionMap[0]))
+
+	drawGrid(contributionMap)
+}
+func fetchContributions(username string, token string) [][]int {
+	src := oauth2.StaticTokenSource(
+		&oauth2.Token{AccessToken: token},
+	)
+	httpClient := oauth2.NewClient(context.Background(), src)
+
+	client := graphql.NewClient("https://api.github.com/graphql", httpClient)
+
+	// Define the query
+	var query Query
+	variables := map[string]interface{}{
+		"login": graphql.String(username),
 	}
 
-	drawGrid(width, height, activityLevels)
+	// Execute the query
+	err := client.Query(context.Background(), &query, variables)
+	if err != nil {
+		log.Fatalf("Failed to execute query: %v", err)
+	}
+
+	var contributionMap = make([][]int, 7)
+	// Print the results
+	for _, week := range query.User.ContributionsCollection.ContributionCalendar.Weeks {
+		for _, day := range week.ContributionDays {
+			contributionMap[int(day.Weekday)] = append(contributionMap[int(day.Weekday)], int(day.ContributionCount))
+		}
+	}
+	return contributionMap
+}
+
+type ContributionDay struct {
+	Weekday           graphql.Int    `json:"weekday"`
+	Date              graphql.String `json:"date"`
+	ContributionCount graphql.Int    `json:"contributionCount"`
+}
+
+type Week struct {
+	ContributionDays []ContributionDay `json:"contributionDays"`
+}
+
+type ContributionCalendar struct {
+	Weeks []Week `json:"weeks"`
+}
+
+type ContributionsCollection struct {
+	ContributionCalendar ContributionCalendar `json:"contributionCalendar"`
+}
+
+type User struct {
+	ContributionsCollection ContributionsCollection `json:"contributionsCollection"`
+}
+
+type Query struct {
+	User User `graphql:"user(login: $login)"`
 }
