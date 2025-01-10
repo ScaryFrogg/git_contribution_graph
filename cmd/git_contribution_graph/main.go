@@ -6,11 +6,11 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"github.com/shurcooL/graphql"
-	"golang.org/x/oauth2"
 	"log"
 	"net/http"
 	"time"
+
+	"golang.org/x/oauth2"
 )
 
 const (
@@ -50,45 +50,14 @@ func main() {
 	username := flag.String("username", "", "GitHub username")
 	flag.Parse()
 
-	contributionMap := fetchContributions2(*username, *token)
+	contributionMap := fetchContributions(*username, *token)
 	println(len(contributionMap))
 	println(len(contributionMap[0]))
 
 	drawGrid(contributionMap)
 }
+
 func fetchContributions(username string, token string) [][]int {
-	src := oauth2.StaticTokenSource(
-		&oauth2.Token{AccessToken: token},
-	)
-	httpClient := oauth2.NewClient(context.Background(), src)
-
-	client := graphql.NewClient("https://api.github.com/graphql", httpClient)
-
-	currentTime := time.Now().UTC().Format(time.RFC3339)
-
-	// Define the query
-	var query Query
-	variables := map[string]interface{}{
-		"login": graphql.String(username),
-		"to":    graphql.String(currentTime),
-	}
-
-	// Execute the query
-	err := client.Query(context.Background(), &query, variables)
-	if err != nil {
-		log.Fatalf("Failed to execute query: %v", err)
-	}
-
-	var contributionMap = make([][]int, 7)
-	// Print the results
-	for _, week := range query.User.ContributionsCollection.ContributionCalendar.Weeks {
-		for _, day := range week.ContributionDays {
-			contributionMap[int(day.Weekday)] = append(contributionMap[int(day.Weekday)], int(day.ContributionCount))
-		}
-	}
-	return contributionMap
-}
-func fetchContributions2(username string, token string) [][]int {
 	// OAuth2 client setup
 	src := oauth2.StaticTokenSource(
 		&oauth2.Token{AccessToken: token},
@@ -96,11 +65,14 @@ func fetchContributions2(username string, token string) [][]int {
 	httpClient := oauth2.NewClient(context.Background(), src)
 
 	// Build the query
+	currentYear := time.Now().Year()
+	from := fmt.Sprintf("%d-01-01T00:00:00", currentYear)
 	currentTime := time.Now().UTC().Format(time.RFC3339)
+	//query ($login: String!, $from: DateTime!, $to: DateTime!) {
 	query := `
 	query ($login: String!, $to: DateTime!) {
 		user(login: $login) {
-			contributionsCollection(to: $to) {
+			contributionsCollection(from: $from, to: $to) {
 				contributionCalendar {
 					weeks {
 						contributionDays {
@@ -114,6 +86,7 @@ func fetchContributions2(username string, token string) [][]int {
 	}`
 	variables := map[string]interface{}{
 		"login": username,
+		"from":  from,
 		"to":    currentTime,
 	}
 	requestBody := map[string]interface{}{
@@ -144,29 +117,19 @@ func fetchContributions2(username string, token string) [][]int {
 	}
 
 	// Parse the response
-	var result struct {
-		Data struct {
-			User struct {
-				ContributionsCollection struct {
-					ContributionCalendar struct {
-						Weeks []struct {
-							ContributionDays []struct {
-								Weekday           int `json:"weekday"`
-								ContributionCount int `json:"contributionCount"`
-							} `json:"contributionDays"`
-						} `json:"weeks"`
-					} `json:"contributionCalendar"`
-				} `json:"contributionsCollection"`
-			} `json:"user"`
-		} `json:"data"`
-	}
+	var result GithubResponse
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		log.Fatalf("Failed to parse response: %v", err)
 	}
 
+	if errorMessage := result.Errors; errorMessage != nil {
+		log.Fatalln(errorMessage[0])
+	}
+
 	// Process the results
 	var contributionMap = make([][]int, 7)
-	for _, week := range result.Data.User.ContributionsCollection.ContributionCalendar.Weeks {
+	for w, week := range result.Data.User.ContributionsCollection.ContributionCalendar.Weeks {
+		fmt.Printf("week:%d", w)
 		for _, day := range week.ContributionDays {
 			contributionMap[day.Weekday] = append(contributionMap[day.Weekday], day.ContributionCount)
 		}
@@ -174,28 +137,22 @@ func fetchContributions2(username string, token string) [][]int {
 	return contributionMap
 }
 
-type ContributionDay struct {
-	Weekday           graphql.Int    `json:"weekday"`
-	Date              graphql.String `json:"date"`
-	ContributionCount graphql.Int    `json:"contributionCount"`
-}
-
-type Week struct {
-	ContributionDays []ContributionDay `json:"contributionDays"`
-}
-
-type ContributionCalendar struct {
-	Weeks []Week `json:"weeks"`
-}
-
-type ContributionsCollection struct {
-	ContributionCalendar ContributionCalendar `json:"contributionCalendar"`
-}
-
-type User struct {
-	ContributionsCollection ContributionsCollection `graphql:"contributionsCollection(to: $to)"`
-}
-
-type Query struct {
-	User User `graphql:"user(login: $login)"`
+type GithubResponse struct {
+	Data struct {
+		User struct {
+			ContributionsCollection struct {
+				ContributionCalendar struct {
+					Weeks []struct {
+						ContributionDays []struct {
+							Weekday           int `json:"weekday"`
+							ContributionCount int `json:"contributionCount"`
+						} `json:"contributionDays"`
+					} `json:"weeks"`
+				} `json:"contributionCalendar"`
+			} `json:"contributionsCollection"`
+		} `json:"user"`
+	} `json:"data"`
+	Errors []struct {
+		Message string `json:"message"`
+	} `json:"errors"`
 }
