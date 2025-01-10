@@ -22,7 +22,7 @@ const (
 	c4         = "\x1b[48;5;22m"
 )
 
-var colorMap = []string{white, c1, c2, c3, c4}
+var colorMap = []string{resetColor, white, c1, c2, c3, c4}
 
 func drawGrid(activityLevels [][]int) {
 	for y := 0; y < len(activityLevels); y++ {
@@ -30,14 +30,16 @@ func drawGrid(activityLevels [][]int) {
 			var colorIndex int
 			cCount := activityLevels[y][x]
 			switch {
-			case cCount == 0:
+			case cCount == -1:
 				colorIndex = 0
-			case cCount < 3:
+			case cCount == 0:
 				colorIndex = 1
-			case cCount < 5:
+			case cCount < 3:
 				colorIndex = 2
-			default:
+			case cCount < 5:
 				colorIndex = 3
+			default:
+				colorIndex = 4
 			}
 			fmt.Print(colorMap[colorIndex] + "  " + resetColor)
 		}
@@ -51,9 +53,6 @@ func main() {
 	flag.Parse()
 
 	contributionMap := fetchContributions(*username, *token)
-	println(len(contributionMap))
-	println(len(contributionMap[0]))
-
 	drawGrid(contributionMap)
 }
 
@@ -70,7 +69,7 @@ func fetchContributions(username string, token string) [][]int {
 	currentTime := time.Now().UTC().Format(time.RFC3339)
 	//query ($login: String!, $from: DateTime!, $to: DateTime!) {
 	query := `
-	query ($login: String!, $to: DateTime!) {
+	query ($login: String!, $from: DateTime!, $to: DateTime!) {
 		user(login: $login) {
 			contributionsCollection(from: $from, to: $to) {
 				contributionCalendar {
@@ -128,8 +127,15 @@ func fetchContributions(username string, token string) [][]int {
 
 	// Process the results
 	var contributionMap = make([][]int, 7)
-	for w, week := range result.Data.User.ContributionsCollection.ContributionCalendar.Weeks {
-		fmt.Printf("week:%d", w)
+
+	//Put in the gap when year does not start with first weekday (Sunday)
+	var firstWeek = result.Data.User.ContributionsCollection.ContributionCalendar.Weeks[0]
+	for gapIndex := 0; gapIndex < 7-len(firstWeek.ContributionDays); gapIndex++ {
+		contributionMap[gapIndex] = append(contributionMap[gapIndex], -1)
+	}
+
+	//Fill in the rest
+	for _, week := range result.Data.User.ContributionsCollection.ContributionCalendar.Weeks {
 		for _, day := range week.ContributionDays {
 			contributionMap[day.Weekday] = append(contributionMap[day.Weekday], day.ContributionCount)
 		}
