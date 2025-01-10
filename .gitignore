@@ -1,0 +1,12 @@
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Mac OS X files
+.DS_Store
+
+# Test binary, build with `go test -c`
+*.test
