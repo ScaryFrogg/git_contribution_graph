@@ -23,7 +23,8 @@ func DrawGrid(activityLevels [][]int) {
 			cCount := activityLevels[y][x]
 			switch {
 			case cCount == -1:
-				colorCode = invisibleText
+				fmt.Print("\u3000 ")
+				continue
 			case cCount == 0:
 				colorCode = colorMap[0]
 			case cCount < 3:
