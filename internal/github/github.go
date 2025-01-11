@@ -12,7 +12,7 @@ import (
 	"golang.org/x/oauth2"
 )
 
-func FetchContributions(username string, token string) [][]int {
+func FetchContributions(username string, token string, from string, to string) [][]int {
 	// OAuth2 client setup
 	src := oauth2.StaticTokenSource(
 		&oauth2.Token{AccessToken: token},
@@ -21,8 +21,13 @@ func FetchContributions(username string, token string) [][]int {
 
 	// Build the query
 	now := time.Now()
-	from := time.Date(now.Year(), 1, 1, 0, 0, 0, 0, time.Local).Format(time.RFC3339)
-	currentTime := now.Format(time.RFC3339)
+	if from == "" {
+		from = time.Date(now.Year(), 1, 1, 0, 0, 0, 0, time.Local).Format(time.RFC3339)
+	}
+	if to == "" {
+		to = now.Format(time.RFC3339)
+	}
+
 	query := `
 	query ($login: String!, $from: DateTime!, $to: DateTime!) {
 		user(login: $login) {
@@ -42,7 +47,7 @@ func FetchContributions(username string, token string) [][]int {
 	variables := map[string]interface{}{
 		"login": username,
 		"from":  from,
-		"to":    currentTime,
+		"to":    to,
 	}
 	requestBody := map[string]interface{}{
 		"query":     query,
