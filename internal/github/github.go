@@ -20,10 +20,9 @@ func FetchContributions(username string, token string) [][]int {
 	httpClient := oauth2.NewClient(context.Background(), src)
 
 	// Build the query
-	currentYear := time.Now().Year()
-	from := fmt.Sprintf("%d-01-01T00:00:00", currentYear)
-	currentTime := time.Now().UTC().Format(time.RFC3339)
-	//query ($login: String!, $from: DateTime!, $to: DateTime!) {
+	now := time.Now()
+	from := time.Date(now.Year(), 1, 1, 0, 0, 0, 0, time.Local).Format(time.RFC3339)
+	currentTime := now.Format(time.RFC3339)
 	query := `
 	query ($login: String!, $from: DateTime!, $to: DateTime!) {
 		user(login: $login) {
@@ -39,6 +38,7 @@ func FetchContributions(username string, token string) [][]int {
 			}
 		}
 	}`
+
 	variables := map[string]interface{}{
 		"login": username,
 		"from":  from,
