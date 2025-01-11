@@ -1,4 +1,4 @@
-[![example][assets/product-screenshot.png]]
+![screenshot](assets/product-screenshot.png)
 ## Getting Started
 
 If you have `go` installed, you can build from source
