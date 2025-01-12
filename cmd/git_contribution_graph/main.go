@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"github.com/ScaryFrogg/git_contribution_graph/internal/draw"
+	"github.com/ScaryFrogg/git_contribution_graph/internal/git"
 	"github.com/ScaryFrogg/git_contribution_graph/internal/github"
 )
 
@@ -13,6 +14,12 @@ func main() {
 	toFlag := flag.String("to", "", "End Time for the graph in ISO-8601 format, defaults to the current time")
 	flag.Parse()
 
-	contributionMap := github.FetchContributions(*username, *token, *fromFlag, *toFlag)
+	var contributionMap [][]int
+	if *token == "" {
+		contributionMap = git.GetLocalContributions(*fromFlag, *toFlag)
+	} else {
+		contributionMap = github.FetchContributions(*username, *token, *fromFlag, *toFlag)
+	}
+
 	draw.DrawGrid(contributionMap)
 }
