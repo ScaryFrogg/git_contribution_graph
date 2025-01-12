@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"time"
 
 	"golang.org/x/oauth2"
 )
@@ -20,14 +19,6 @@ func FetchContributions(username string, token string, from string, to string) [
 	httpClient := oauth2.NewClient(context.Background(), src)
 
 	// Build the query
-	now := time.Now()
-	if from == "" {
-		from = time.Date(now.Year(), 1, 1, 0, 0, 0, 0, time.Local).Format(time.RFC3339)
-	}
-	if to == "" {
-		to = now.Format(time.RFC3339)
-	}
-
 	query := `
 	query ($login: String!, $from: DateTime!, $to: DateTime!) {
 		user(login: $login) {

@@ -5,6 +5,7 @@ import (
 	"github.com/ScaryFrogg/git_contribution_graph/internal/draw"
 	"github.com/ScaryFrogg/git_contribution_graph/internal/git"
 	"github.com/ScaryFrogg/git_contribution_graph/internal/github"
+	"time"
 )
 
 func main() {
@@ -14,6 +15,8 @@ func main() {
 	toFlag := flag.String("to", "", "End Time for the graph in ISO-8601 format, defaults to the current time")
 	flag.Parse()
 
+	parseDates(fromFlag, toFlag)
+
 	var contributionMap [][]int
 	if *token == "" {
 		contributionMap = git.GetLocalContributions(*fromFlag, *toFlag)
@@ -22,4 +25,14 @@ func main() {
 	}
 
 	draw.DrawGrid(contributionMap)
+}
+
+func parseDates(from *string, to *string) {
+	now := time.Now()
+	if *from == "" {
+		*from = time.Date(now.Year(), 1, 1, 0, 0, 0, 0, time.Local).Format(time.RFC3339)
+	}
+	if *to == "" {
+		*to = now.Format(time.RFC3339)
+	}
 }
