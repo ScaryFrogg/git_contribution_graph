@@ -1,7 +1,6 @@
 package git
 
 import (
-	"fmt"
 	"math"
 	"os/exec"
 	"strings"
@@ -21,7 +20,6 @@ func GetLocalContributions(from string, to string) (matrix [][]int, errorOrNotRe
 	for _, x := range gitLog {
 		contributionCount[x]++
 	}
-	fmt.Println("contributionCountMap", contributionCount)
 
 	//build matrix
 	fromDate, parseError := time.Parse(time.RFC3339, from)
@@ -49,6 +47,7 @@ func GetLocalContributions(from string, to string) (matrix [][]int, errorOrNotRe
 
 	return contributionMatrix, false
 }
+
 func isDirRepo() bool {
 	cmd := "git status"
 	_, err := exec.Command("bash", "-c", cmd).Output()
