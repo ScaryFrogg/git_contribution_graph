@@ -8,9 +8,13 @@ import (
 	"time"
 )
 
-func GetLocalContributions(from string, to string) [][]int {
+func GetLocalContributions(from string, to string) (matrix [][]int, errorOrNotRepo bool) {
+
+	if !isDirRepo() {
+		return nil, true
+	}
+
 	gitLog := getGitLog()
-	println(len(gitLog))
 
 	// get days with contributions
 	contributionCount := make(map[string]int)
@@ -43,7 +47,15 @@ func GetLocalContributions(from string, to string) [][]int {
 		contributionMatrix[weekday] = append(contributionMatrix[weekday], count)
 	}
 
-	return contributionMatrix
+	return contributionMatrix, false
+}
+func isDirRepo() bool {
+	cmd := "git status"
+	_, err := exec.Command("bash", "-c", cmd).Output()
+	if err != nil {
+		return false
+	}
+	return true
 }
 
 func getGitLog() []string {
@@ -52,8 +64,9 @@ func getGitLog() []string {
 
 	out, err := exec.Command("bash", "-c", cmd).Output()
 	if err != nil {
-		println("Failed to execute command: %s", cmd)
+		println("Failed to execute command: %s", err)
 		return make([]string, 0)
 	}
+
 	return strings.Split(string(out), "\n")
 }

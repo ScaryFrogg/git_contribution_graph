@@ -19,7 +19,11 @@ func main() {
 
 	var contributionMap [][]int
 	if *token == "" {
-		contributionMap = git.GetLocalContributions(*fromFlag, *toFlag)
+		var err bool
+		contributionMap, err = git.GetLocalContributions(*fromFlag, *toFlag)
+		if err {
+			return
+		}
 	} else {
 		contributionMap = github.FetchContributions(*username, *token, *fromFlag, *toFlag)
 	}
