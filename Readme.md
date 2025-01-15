@@ -1,13 +1,18 @@
 ![screenshot](assets/product-screenshot.png)
 ## Getting Started
 
+### Getting binary
 If you have `go` installed, you can build from source
 ```sh
 go build -o gitContributionGraph cmd/git_contribution_graph/main.go
 ```
+Or download from releses page.
 
 ### Github API access token
 You can create new access token at https://github.com/settings/tokens, `read:user` scope is enough.
+
+### Dependencies
+This version needs `git`, `bash`(if you have git bash that is also ok) and `sed`. Plan for future versions is to only need `git`.
 
 ## Usage
 
