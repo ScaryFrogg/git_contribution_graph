@@ -13,6 +13,7 @@ func main() {
 	username := flag.String("username", "", "GitHub username")
 	fromFlag := flag.String("from", "", "Begin Time for the graph in ISO-8601 format, defaults to the beggining of the current year")
 	toFlag := flag.String("to", "", "End Time for the graph in ISO-8601 format, defaults to the current time")
+	colorSchema := flag.String("colorSchema", "", "5 ANSI 256 color codes (colors for empty square, and 4 levels of contirbutions) separated by coma.")
 	flag.Parse()
 
 	parseDates(fromFlag, toFlag)
@@ -28,7 +29,7 @@ func main() {
 		contributionMap = github.FetchContributions(*username, *token, *fromFlag, *toFlag)
 	}
 
-	draw.DrawGrid(contributionMap)
+	draw.DrawGrid(contributionMap, *colorSchema)
 }
 
 func parseDates(from *string, to *string) {
