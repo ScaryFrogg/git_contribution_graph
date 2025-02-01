@@ -17,7 +17,7 @@ const (
 	c4            = "\x1b[38;5;22m"
 )
 
-var defaultColorMap = []string{white, c1, c2, c3, c4}
+var defaultColorMap = [5]string{white, c1, c2, c3, c4}
 
 func DrawGrid(activityLevels [][]int, colorSchema string) {
 	colorMap := getColorSchema(colorSchema)
@@ -45,23 +45,23 @@ func DrawGrid(activityLevels [][]int, colorSchema string) {
 	}
 }
 
-func getColorSchema(colorSchema string) []string {
+func getColorSchema(colorSchema string) [5]string {
 	if colorSchema == "" {
 		return defaultColorMap
 	}
-	re := regexp.MustCompile(`^(\d?\d?\d\,){3}\d?\d?\d$`)
+	re := regexp.MustCompile(`^(\d?\d?\d\,){4}\d?\d?\d$`)
 	if !re.MatchString(colorSchema) {
 		fmt.Println("color schema not in proper format, falling back to default schema")
 		return defaultColorMap
 	}
 
 	colorCodes := strings.Split(colorSchema, ",")
-	if len(colorCodes) != 4 {
+	if len(colorCodes) != 5 {
 		//Should not come to this because of regexp
 		fmt.Println("color schema should contain only 4 color codes, falling back to default schema")
 		return defaultColorMap
 	}
-	colorMap := make([]string, 4)
+	var colorMap [5]string
 	for i, color := range colorCodes {
 		cc, err := strconv.Atoi(color)
 		if err != nil {
