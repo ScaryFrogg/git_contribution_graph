@@ -28,7 +28,7 @@ func DrawGrid(activityLevels [][]int, colorSchema string) {
 			cCount := activityLevels[y][x]
 			switch {
 			case cCount == -1:
-				fmt.Print("\u3000 ")
+				fmt.Print("\u3000")
 				continue
 			case cCount == 0:
 				colorCode = colorMap[0]
@@ -39,7 +39,7 @@ func DrawGrid(activityLevels [][]int, colorSchema string) {
 			default:
 				colorCode = colorMap[3]
 			}
-			fmt.Print(colorCode + "⬛ " + resetColor)
+			fmt.Print(colorCode + "⬛" + resetColor)
 		}
 		fmt.Println()
 	}
@@ -58,7 +58,7 @@ func getColorSchema(colorSchema string) [5]string {
 	colorCodes := strings.Split(colorSchema, ",")
 	if len(colorCodes) != 5 {
 		//Should not come to this because of regexp
-		fmt.Println("color schema should contain only 4 color codes, falling back to default schema")
+		fmt.Println("color schema should contain only 5 color codes, falling back to default schema")
 		return defaultColorMap
 	}
 	var colorMap [5]string

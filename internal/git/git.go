@@ -1,6 +1,8 @@
 package git
 
 import (
+	"fmt"
+	"log"
 	"math"
 	"os/exec"
 	"strings"
@@ -8,12 +10,11 @@ import (
 )
 
 func GetLocalContributions(from string, to string) (matrix [][]int, errorOrNotRepo bool) {
-
 	if !isDirRepo() {
 		return nil, true
 	}
 
-	gitLog := getGitLog()
+	gitLog := getGitLog(from, to)
 
 	// get days with contributions
 	contributionCount := make(map[string]int)
@@ -21,23 +22,28 @@ func GetLocalContributions(from string, to string) (matrix [][]int, errorOrNotRe
 		contributionCount[x]++
 	}
 
-	//build matrix
 	fromDate, parseError := time.Parse(time.RFC3339, from)
 	if parseError != nil {
-		//TODO
+		log.Fatal("Fatal: Unable to parse fromDate")
 	}
-	days := math.Ceil(time.Now().Sub(fromDate).Hours() / 24)
+	toDate, parseError := time.Parse(time.RFC3339, to)
+	if parseError != nil {
+		log.Fatal("Fatal: Unable to parse toDate")
+	}
+	//build matrix
 	contributionMatrix := make([][]int, 7)
+	//add gap if selected start day is not first day of the week
+	if d := int(fromDate.Weekday()); d != 0 {
+		for gapIndex := 0; gapIndex < d; gapIndex++ {
+			contributionMatrix[gapIndex] = append(contributionMatrix[gapIndex], -1)
+		}
+	}
+
+	days := math.Ceil(toDate.Sub(fromDate).Hours() / 24)
 	for d := 0; d < int(days); d++ {
 		date := fromDate.AddDate(0, 0, d)
 		weekday := int(date.Weekday())
-		x := date.Format("Jan 2 2006")
-		//add gap if selected start day is not first day of the week
-		if d == 0 {
-			for gapIndex := 0; gapIndex < 6-weekday; gapIndex++ {
-				contributionMatrix[gapIndex] = append(contributionMatrix[gapIndex], -1)
-			}
-		}
+		x := date.Format(time.DateOnly)
 		count := 0
 		if cc, exists := contributionCount[x]; exists {
 			count = cc
@@ -56,16 +62,13 @@ func isDirRepo() bool {
 	}
 	return true
 }
-
-func getGitLog() []string {
-	//TODO explore advantages of using Pipe and Stdout, Stdin from os stdlib instead
-	cmd := "git log --pretty=format:'%cd' | sed -E 's/^.{4}//; s/[[:space:]]\\+.*$//; s/[[:space:]][[:digit:]]{2}:[[:digit:]]{2}:[[:digit:]]{2}//'"
-
-	out, err := exec.Command("bash", "-c", cmd).Output()
+func getGitLog(from string, to string) []string {
+	fromOpt := fmt.Sprintf("--since='%v'", from)
+	toOpt := fmt.Sprintf("--until='%v'", to)
+	out, err := exec.Command("git", "log", "--pretty=format:%cd", "--date=short", fromOpt, toOpt).Output()
 	if err != nil {
 		println("Failed to execute command: %s", err)
 		return make([]string, 0)
 	}
-
 	return strings.Split(string(out), "\n")
 }
