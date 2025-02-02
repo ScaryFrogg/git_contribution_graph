@@ -13,10 +13,10 @@ func main() {
 	username := flag.String("username", "", "GitHub username")
 	fromFlag := flag.String("from", "", "Begin Time for the graph in ISO-8601 format, defaults to the beggining of the current year")
 	toFlag := flag.String("to", "", "End Time for the graph in ISO-8601 format, defaults to the current time")
-	colorSchema := flag.String("colorSchema", "", "5 ANSI 256 color codes (colors for empty square, and 4 levels of contirbutions) separated by coma.")
+	colorSchema := flag.String("colors", "", "5 ANSI 256 color codes (colors for empty square, and 4 levels of contirbutions) separated by coma.")
 	flag.Parse()
 
-	parseDates(fromFlag, toFlag)
+	defaultDatesIfNotPassed(fromFlag, toFlag)
 
 	var contributionMap [][]int
 	if *token == "" {
@@ -32,7 +32,7 @@ func main() {
 	draw.DrawGrid(contributionMap, *colorSchema)
 }
 
-func parseDates(from *string, to *string) {
+func defaultDatesIfNotPassed(from *string, to *string) {
 	now := time.Now()
 	if *from == "" {
 		*from = time.Date(now.Year(), 1, 1, 0, 0, 0, 0, time.Local).Format(time.RFC3339)

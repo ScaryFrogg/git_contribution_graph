@@ -12,7 +12,7 @@ Or download from [releses page](https://github.com/ScaryFrogg/git_contribution_g
 If you want to use github mode, you need to create new access token at https://github.com/settings/tokens, `read:user` scope is enough.
 
 ### Dependencies
-This version needs `git`, `bash`(if you have git bash that is also ok) and `sed`. Plan for future versions is to only need `git`.
+Only dependency needed is `git`.
 
 ## Usage
 
@@ -41,3 +41,10 @@ function cd {
 }
 ```
 now every time when you cd into repo folder graph will get printed.
+
+### Additional Options
+* `colors` : lets you provide custom colors for squares in the graph, format should be 5 [ANSI 256](https://hexdocs.pm/color_palette/ansi_color_codes.html) color codes separated by comma.
+```bash
+gcg -token=$GH_CONTRIBUTION_KEY -username=ScaryFrogg -from=2024-05-23T00:00:00Z -colors=1,230,11,157,10
+```
+![customColors](assets/colors-option.png)
