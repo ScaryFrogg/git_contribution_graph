@@ -5,6 +5,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 )
 
 const (
@@ -17,12 +18,18 @@ const (
 	c4            = "\x1b[38;5;22m"
 )
 
-var defaultColorMap = [5]string{white, c1, c2, c3, c4}
+var (
+	defaultColorMap = [5]string{white, c1, c2, c3, c4}
+	weekDayNames    = [7]string{"Sun", "Mon", "Tue", "Wen", "Thr", "Fri", "Sat"}
+)
 
-func DrawGrid(activityLevels [][]int, colorSchema string) {
+func DrawGrid(activityLevels [][]int, colorSchema string, legendEnabled bool) {
 	colorMap := getColorSchema(colorSchema)
 
 	for y := 0; y < len(activityLevels); y++ {
+		if legendEnabled {
+			fmt.Print(weekDayNames[y] + "\u3000")
+		}
 		for x := 0; x < len(activityLevels[y]); x++ {
 			var colorCode string
 			cCount := activityLevels[y][x]
@@ -43,6 +50,40 @@ func DrawGrid(activityLevels [][]int, colorSchema string) {
 		}
 		fmt.Println()
 	}
+}
+
+func DrawMonthsLegend(legend bool, from string, intervalLength int) {
+	if !legend {
+		return
+	}
+	fromDate, parseError := time.Parse(time.RFC3339, from)
+	if parseError != nil {
+		return
+	}
+
+	//Padding for day of the week text
+	fmt.Printf("   \u3000")
+	var currMonth = fromDate.Month()
+	// Now Align checking to Sunday so we are allways checking first row of squares for next month
+	var currDay = int(fromDate.Weekday())
+	var firstSunday = fromDate.AddDate(0, 0, -currDay)
+	// If next week is not in next month we have space to write down first months name
+	if currMonth == firstSunday.AddDate(0, 0, 7).Month() {
+		fmt.Printf("%.3s ", currMonth)
+	} else {
+		//we skip first cube month will be written in loop later
+		fmt.Printf("\u3000")
+	}
+
+	for i := 2; i < intervalLength; i++ {
+		if currMonth != firstSunday.AddDate(0, 0, i*7).Month() {
+			currMonth = firstSunday.AddDate(0, 0, i*7).Month()
+			fmt.Printf("%.3s ", currMonth)
+		} else {
+			fmt.Printf("\u3000")
+		}
+	}
+	fmt.Println()
 }
 
 func getColorSchema(colorSchema string) [5]string {

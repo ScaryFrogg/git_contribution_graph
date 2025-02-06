@@ -14,6 +14,7 @@ func main() {
 	fromFlag := flag.String("from", "", "Begin Time for the graph in ISO-8601 format, defaults to the beggining of the current year")
 	toFlag := flag.String("to", "", "End Time for the graph in ISO-8601 format, defaults to the current time")
 	colorSchema := flag.String("colors", "", "5 ANSI 256 color codes (colors for empty square, and 4 levels of contirbutions) separated by coma.")
+	legend := flag.Bool("legend", true, "Graph legend enabled?")
 	flag.Parse()
 
 	defaultDatesIfNotPassed(fromFlag, toFlag)
@@ -29,7 +30,8 @@ func main() {
 		contributionMap = github.FetchContributions(*username, *token, *fromFlag, *toFlag)
 	}
 
-	draw.DrawGrid(contributionMap, *colorSchema)
+	draw.DrawMonthsLegend(*legend, *fromFlag, len(contributionMap[0]))
+	draw.DrawGrid(contributionMap, *colorSchema, *legend)
 }
 
 func defaultDatesIfNotPassed(from *string, to *string) {
