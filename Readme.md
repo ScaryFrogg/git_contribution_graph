@@ -1,10 +1,11 @@
+
 ![screenshot](assets/product-screenshot.png)
 ## Getting Started
 
-### Getting binary
+### Getting the binary
 If you have `go` installed, you can build from source
 ```sh
-go build -o gitContributionGraph cmd/git_contribution_graph/main.go
+go build -o gcg cmd/git_contribution_graph/main.go
 ```
 Or download from [releses page](https://github.com/ScaryFrogg/git_contribution_graph/releases/).
 
@@ -18,33 +19,38 @@ Only dependency needed is `git`.
 
 ### Github Contributions Graph
 ```sh
-gitContributionGraph -token=$GH_CONTRIBUTION_KEY -username=ScaryFrogg
+gcg -token=$GH_CONTRIBUTION_KEY -username=ScaryFrogg
 ```
+![screenshot](assets/defaults.png)
+
 By default graph shows current year from beggining until present time. If you want to specify period you can do that by providing `from` and `to` flags using ISO-8601 format.
 ```sh
-gitContributionGraph -token=$GH_CONTRIBUTION_KEY -username=ScaryFrogg -from=2023-01-01T00:00:00Z -to=2023-12-31T23:59:00Z 
+gcg -token=$GH_CONTRIBUTION_KEY -username=ScaryFrogg -from=2023-01-01T00:00:00Z -to=2023-12-31T23:59:00Z 
 ```
+![screenshot](assets/to-from-options.png)
 > **_NOTE:_**  GitHub API doesn't accept period longer than 1 year.
 
 ### Local Git reposetories
-This is the default mode and you don't need to provide any options, just call binary and graph will be printed if you are inside git repository.
+This is the default mode and you and it is activated when no `tokem` is provided.
 Options `from` and `to` are optional and work the same as in github mode.
-Other examples of usages:
-- if you want to call graph on demand often you can set alias in your .bashrc or equivalent for other shells:
-```bash
-alias gcg='gitContributionGraph'
-```
-- if you want to be able to change dirs with this command and print result after you can do something like
+
+To add gcg to run after you change directory in terminal and print if you are inside repo you can add something like this in your .bashrc or equivalent file for other shells:
+
 ```bash
 function cd {
-    builtin cd "$@" && gitContributionGraph
+    builtin cd "$@" && gcg
 }
 ```
-now every time when you cd into repo folder graph will get printed.
 
 ### Additional Options
 * `colors` : lets you provide custom colors for squares in the graph, format should be 5 [ANSI 256](https://hexdocs.pm/color_palette/ansi_color_codes.html) color codes separated by comma.
 ```bash
-gcg -token=$GH_CONTRIBUTION_KEY -username=ScaryFrogg -from=2024-05-23T00:00:00Z -colors=1,230,11,157,10
+gcg -colors=1,230,11,157,10 -token=$GH_CONTRIBUTION_KEY -username=ScaryFrogg -from=2024-05-23T00:00:00Z 
 ```
 ![customColors](assets/colors-option.png)
+* `legend` :  by default set to `true` if set to `false` will remove months and weekdays from output
+ ```bash
+gcg -legend=false -token=$$GH_CONTRIBUTION_KEY -username=ScaryFrogg -from=2024-05-23T00:00:00Z 
+```
+
+![noLegend screenshot](assets/no-legend-option.png)

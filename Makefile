@@ -1,23 +1,21 @@
-# Build the application
 build-local:
-	@echo "Building..."
-	
-	@go build -o gcg cmd/git_contribution_graph/main.go
-	@echo ls -lA ./bin/
-
-# Run the application
+	@echo "Building... to /usr/local/bin"
+	@go build -o /usr/local/bin/gcg cmd/git_contribution_graph/main.go
 run:
 	@go run cmd/git_contribution_graph/main.go
 	@echo "$(CURRENT_VERSION_MICRO)"
-
-# Clean the binary
 clean:
 	@echo "Cleaning..."
 	@rm ./bin/*
+test:
+	@go run cmd/git_contribution_graph/main.go -token=$$GH_CONTRIBUTION_KEY -username=ScaryFrogg
+	@echo ""
+	@go run cmd/git_contribution_graph/main.go -token=$$GH_CONTRIBUTION_KEY -username=ScaryFrogg -from=2024-05-23T00:00:00Z
+	@echo ""
+	@go run cmd/git_contribution_graph/main.go -token=$$GH_CONTRIBUTION_KEY -username=ScaryFrogg -from=2024-05-23T00:00:00Z -colors=1,230,11,157,10
+	@echo ""
+	@go run cmd/git_contribution_graph/main.go -token=$$GH_CONTRIBUTION_KEY -username=ScaryFrogg -from=2024-05-23T00:00:00Z -legend=false
 
-.PHONY: build-local run clean
-
-#Release version
 DESCRIBE           := $(shell git describe --match "*" --always --tags)
 DESCRIBE_PARTS     := $(subst -, ,$(DESCRIBE))
 
@@ -45,7 +43,6 @@ CURRENT_VERSION_MINOR := $(MAJOR).$(NEXT_MINOR).0
 CURRENT_VERSION_MAJOR := $(NEXT_MAJOR).0.0
 endif
 
-.PHONY: build-release
 build-release:
 	@echo "Building version $(CURRENT_VERSION_MICRO)..."
 	@echo "Building Linux binary..."
@@ -58,7 +55,6 @@ build-release:
 	@echo "Packaging Windows binary..."
 	@zip -j ./bin/windows_amd64.zip ./bin/gcg.exe
 
-.PHONY: release-micro
 release-micro:
 	@echo "Building version $(CURRENT_VERSION_MICRO)"
 	@$(MAKE) build-release
@@ -67,7 +63,6 @@ release-micro:
 	@git tag -a $(CURRENT_VERSION_MICRO) -m "Release version $(CURRENT_VERSION_MICRO)"
 	@git push origin $(CURRENT_VERSION_MICRO)
 
-.PHONY: release-minor
 release-minor:
 	@echo "Building version $(CURRENT_VERSION_MINOR)"
 	@$(MAKE) build-release
@@ -76,7 +71,6 @@ release-minor:
 	@git tag -a $(CURRENT_VERSION_MINOR) -m "Release version $(CURRENT_VERSION_MINOR)"
 	@git push origin $(CURRENT_VERSION_MINOR)
 
-.PHONY: release-major
 release-major:
 	@echo "Building version $(CURRENT_VERSION_MAJOR)"
 	@$(MAKE) build-release
@@ -84,3 +78,5 @@ release-major:
 	@echo "Publishing version $(CURRENT_VERSION_MAJOR)"
 	@git tag -a $(CURRENT_VERSION_MAJOR) -m "Release version $(CURRENT_VERSION_MAJOR)"
 	@git push origin $(CURRENT_VERSION_MAJOR)
+
+.PHONY: build-local run clean build-release release-major release-micro release-minor test

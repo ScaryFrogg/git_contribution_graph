@@ -79,6 +79,7 @@ func DrawMonthsLegend(legend bool, from string, intervalLength int) {
 		if currMonth != firstSunday.AddDate(0, 0, i*7).Month() {
 			currMonth = firstSunday.AddDate(0, 0, i*7).Month()
 			fmt.Printf("%.3s ", currMonth)
+			i++ //skip additional square since we printed across 2
 		} else {
 			fmt.Printf("\u3000")
 		}
