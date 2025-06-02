@@ -35,7 +35,7 @@ func DrawGrid(activityLevels [][]int, colorSchema string, legendEnabled bool) {
 			cCount := activityLevels[y][x]
 			switch {
 			case cCount == -1:
-				fmt.Print("\u3000")
+				fmt.Print("\u3000 ")
 				continue
 			case cCount == 0:
 				colorCode = colorMap[0]
@@ -46,8 +46,9 @@ func DrawGrid(activityLevels [][]int, colorSchema string, legendEnabled bool) {
 			default:
 				colorCode = colorMap[3]
 			}
-			fmt.Print(colorCode + "⬛" + resetColor)
+			fmt.Print(colorCode + "\u2588\u2588 " + resetColor)
 		}
+		fmt.Println()
 		fmt.Println()
 	}
 }
@@ -69,19 +70,19 @@ func DrawMonthsLegend(legend bool, from string, intervalLength int) {
 	var firstSunday = fromDate.AddDate(0, 0, -currDay)
 	// If next week is not in next month we have space to write down first months name
 	if currMonth == firstSunday.AddDate(0, 0, 7).Month() {
-		fmt.Printf("%.3s ", currMonth)
+		fmt.Printf("%.3s   ", currMonth)
 	} else {
 		//we skip first cube month will be written in loop later
-		fmt.Printf("\u3000")
+		fmt.Printf("   ")
 	}
 
 	for i := 2; i < intervalLength; i++ {
 		if currMonth != firstSunday.AddDate(0, 0, i*7).Month() {
 			currMonth = firstSunday.AddDate(0, 0, i*7).Month()
-			fmt.Printf("%.3s ", currMonth)
-			i++ //skip additional square since we printed across 2
+			fmt.Printf("%.3s   ", currMonth)
+			i++
 		} else {
-			fmt.Printf("\u3000")
+			fmt.Printf("   ")
 		}
 	}
 	fmt.Println()
